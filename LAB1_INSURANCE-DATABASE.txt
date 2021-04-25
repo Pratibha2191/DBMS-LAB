@@ -1,0 +1,85 @@
+1.Consider the Insurance database given below. The primary keys are underlined and the data types are specified.
+ PERSON (driver-id #: String, name: String, address: String)
+ CAR (Regno: String, model: String, year: int)
+ ACCIDENT (report-number: int, date: date, location: String)
+ OWNS (driver-id #: String, Regno: String)
+ PARTICIPATED (driver-id: String, Regno: String, report-number: int, damage-amount: int)
+
+mysql>CREATE DATABASE INSURANCE;
+
+i. Create the above tables by properly specifying the primary keys and the foreign keys.
+mysql>create table PERSON(
+    -> Driver_id varchar(60),
+    -> Name varchar(60),
+    -> Address varchar(80),
+    -> primary key(Driver_id)
+    -> );
+mysql> create table CAR(
+    -> Regno varchar(60),
+    -> Model varchar(20),
+    -> Year int,
+    -> primary key(Regno)
+    -> );
+mysql> create table ACCIDENT(
+    -> Report_number int,
+    -> Date date,
+    -> Location varchar(80),
+    -> primary key(Report_number)
+    -> );
+mysql> create table OWNS(
+    -> Driver_id varchar(60),
+    -> Regno varchar(60),
+    -> primary key(Driver_id,Regno),
+    -> foreign key(Driver_id) references PERSON(Driver_id),
+    -> foreign key(Regno) references CAR(Regno)
+    -> );
+mysql> create table PARTICIPATED(
+    -> Driver_id varchar(60),
+    -> Regno varchar(60),
+    -> Report_number int,
+    -> Damage_amount int,
+    -> primary key(Driver_id,Regno,Report_number),
+    -> foreign key(Driver_id) references PERSON(Driver_id),
+    -> foreign key(Regno) references CAR(Regno),
+    -> foreign key(Report_number) references ACCIDENT(Report_number)
+    -> );
+
+ii.  Enter at least five tuples for each relation.
+mysql> insert into PERSON(Driver_id,Name,Address) values('P1','Akshay','NR COLONY'),
+    -> ('P2','Jyoti','JAYANAGAR'),
+    -> ('P3','Radha','TYAGRAJNAGAR'),
+    -> ('P5','Rajat','BANASANKARI'),
+    -> ('P6','Jatin','BASVANGUDI');
+mysql> insert into CAR(Regno, Model, Year) values('KA056TB','BMW',2019),
+    -> ('KA456BT','SUZUKI',2001),
+    -> ('KA467BT','HYUNDAI',2003),
+    -> ('KA098BT','MAHINDRA SCORPIO',2009),
+    -> ('KA648BT','TATA ALTROZ',2007);
+mysql> insert into ACCIDENT(Report_number,Date,Location) values(096,'2020-04-14','MG ROAD'),
+    -> (045,'2009-07-28','DHARWAD'),
+    -> (235,'2003-07-22','HUBLI'),
+    -> (123,'2010-03-22','BASVANGUDI'),
+    -> (453,'2010-09-21','JAYANAGAR');
+mysql> insert into OWNS(Driver_id,Regno) values('P1','KA456BT'),
+    -> ('P6','KA467BT'),
+    -> ('P5','KA467BT'),
+    -> ('P3','KA098BT'),
+    -> ('P2','KA648BT');
+mysql> insert into PARTICIPATED(Driver_id,Regno,Report_number,Damage_amount) values('P1','KA456BT',045,5000),
+    -> ('P6','KA467BT',235,8900),
+    -> ('P5','KA467BT',123,4000),
+    -> ('P3','KA098BT',453,6500),
+    -> ('P2','KA648BT',096,1200);
+
+iii.Demonstrate how you
+a.Update the damage amount for the car with a specific Regno in the accident with report number 235 to 25000.
+mysql> update PARTICIPATED set Damage_amount=25000 where Report_number=235 and Regno='KA467BT';     
+
+b. Add a new accident to the database.
+mysql> insert into ACCIDENT values(002,'2021-02-12','Jalahalli');
+
+iv. Find the total number of people who owned cars that involved in accidents in 2010.
+mysql> select count(*) from ACCIDENT where date between '2010-01-01' and '2010-12-31';
+
+v. Find the number of accidents in which cars belonging to a specific model were involved.
+mysql> select count(*) from PARTICIPATED join CAR on CAR.Regno=PARTICIPATED.Regno where CAR.Model="TATA ALTROZ";
