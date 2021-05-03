@@ -1,0 +1,234 @@
+2.Consider the following database for a banking enterprise.
+BRANCH (branch-name: String, branch-city: String, assets: real)
+ACCOUNTS (accno: int, branch-name: String, balance: real)
+DEPOSITOR (customer-name: String, accno:int)
+CUSTOMER( customer-name: String,customer-street: String, customer-city: String)
+LOAN (loan-number: int, branch-name: String, amount: real)
+BORROWER (customer-name: String, loan-number: int)
+
+create database BANKING;
+
+i. Create the above tables by properly specifying the primary keys and the foreign keys.
+
+mysql>create table BRANCH(branch_name varchar(60),branch_city varchar(60),assets real,primary key(branch_name));
+
+mysql> desc BRANCH;
++-------------+-------------+------+-----+---------+-------+
+| Field       | Type        | Null | Key | Default | Extra |
++-------------+-------------+------+-----+---------+-------+
+| branch_name | varchar(60) | NO   | PRI | NULL    |       |
+| branch_city | varchar(60) | YES  |     | NULL    |       |
+| assets      | double      | YES  |     | NULL    |       |
++-------------+-------------+------+-----+---------+-------+
+
+mysql> create table ACCOUNTS(accno int,branch_name varchar(60),balance real,
+       primary key(accno,branch_name),foreign key(branch_name) references BRANCH(branch_name)on delete cascade on update cascade);
+
+mysql> desc ACCOUNTS;
++-------------+-------------+------+-----+---------+-------+
+| Field       | Type        | Null | Key | Default | Extra |
++-------------+-------------+------+-----+---------+-------+
+| accno       | int         | NO   | PRI | NULL    |       |
+| branch_name | varchar(60) | NO   | PRI | NULL    |       |
+| balance     | double      | YES  |     | NULL    |       |
++-------------+-------------+------+-----+---------+-------+
+
+mysql> create table DEPOSITOR(customer_name varchar(60),accno int,
+       primary key(customer_name,accno),foreign key(accno) references ACCOUNTS(accno)on delete cascade on update cascade);
+
+mysql> desc DEPOSITOR;
++---------------+-------------+------+-----+---------+-------+
+| Field         | Type        | Null | Key | Default | Extra |
++---------------+-------------+------+-----+---------+-------+
+| customer_name | varchar(60) | NO   | PRI | NULL    |       |
+| accno         | int         | NO   | PRI | NULL    |       |
++---------------+-------------+------+-----+---------+-------+
+
+mysql> create table CUSTOMER(customer_name varchar(60),customer_street varchar(60), customer_city varchar(60),
+       primary key(customer_name),foreign key(customer_name) references DEPOSITOR(customer_name)on delete cascade on update cascade);
+
+mysql> desc CUSTOMER;
++-----------------+-------------+------+-----+---------+-------+
+| Field           | Type        | Null | Key | Default | Extra |
++-----------------+-------------+------+-----+---------+-------+
+| customer_name   | varchar(60) | NO   | PRI | NULL    |       |
+| customer_street | varchar(60) | YES  |     | NULL    |       |
+| customer_city   | varchar(60) | YES  |     | NULL    |       |
++-----------------+-------------+------+-----+---------+-------+
+
+mysql> create table LOAN(loan_number int,branch_name varchar(60),amount real,
+       primary key(loan_number,branch_name),foreign key(branch_name) references BRANCH(branch_name));
+
+mysql> desc LOAN;
++-------------+-------------+------+-----+---------+-------+
+| Field       | Type        | Null | Key | Default | Extra |
++-------------+-------------+------+-----+---------+-------+
+| loan_number | int         | NO   | PRI | NULL    |       |
+| branch_name | varchar(60) | NO   | PRI | NULL    |       |
+| amount      | double      | YES  |     | NULL    |       |
++-------------+-------------+------+-----+---------+-------+
+
+mysql> create table BORROWER(customer_name varchar(60),loan_number int,primary key(customer_name,loan_number),
+foreign key(customer_name) references DEPOSITOR(customer_name) on delete cascade on update cascade,
+foreign key(loan_number) references LOAN(loan_number) on delete cascade on update cascade);
+
+mysql> desc BORROWER;
++---------------+-------------+------+-----+---------+-------+
+| Field         | Type        | Null | Key | Default | Extra |
++---------------+-------------+------+-----+---------+-------+
+| customer_name | varchar(60) | NO   | PRI | NULL    |       |
+| loan_number   | int         | NO   | PRI | NULL    |       |
++---------------+-------------+------+-----+---------+-------+
+
+
+
+ii. Enter at least five tuples for each relation.
+
+mysql> insert into BRANCH values
+    -> ('ICICI','DHARWAD',50000),
+    -> ('SBI','BANGALORE',45000),
+    -> ('SBI-BASVANGUDI','BANGALORE',37000),
+    -> ('ALLAHABADH','HUBLI',15000),
+    -> ('KARNATAKA-BANK','BELGAUM',90000);
+
+mysql> select *from BRANCH;
++----------------+-------------+--------+
+| branch_name    | branch_city | assets |
++----------------+-------------+--------+
+| ALLAHABADH     | HUBLI       |  15000 |
+| ICICI          | DHARWAD     |  50000 |
+| KARNATAKA-BANK | BELGAUM     |  90000 |
+| SBI            | BANGALORE   |  45000 |
+| SBI-BASVANGUDI | BANGALORE   |  37000 |
++----------------+-------------+--------+
+
+mysql> insert into ACCOUNTS values
+    -> (12345,'ALLAHABADH',4000),
+    -> (67890,'SBI-BASVANGUDI',7500),
+    -> (34567,'KARNATAKA-BANK',9000);
+    -> (12389,'ICICI',5600),
+    -> (49389,'ICICI',1780),
+    -> (34567,'ICICI',5000);
+
+mysql> select *from ACCOUNTS;
++-------+----------------+---------+
+| accno | branch_name    | balance |
++-------+----------------+---------+
+| 12345 | ALLAHABADH     |    4000 |
+| 12389 | ICICI          |    5600 |
+| 34567 | KARNATAKA-BANK |    9000 |
+| 49389 | ICICI          |    1780 |
+| 67890 | SBI-BASVANGUDI |    7500 |
+| 34567 | ICICI          |    5000 |
++-------+----------------+---------+
+
+mysql> insert into DEPOSITOR values
+    -> ('KRISHNA',12345),
+    -> ('RADHA',12389),
+    -> ('BALRAM',34567),
+    -> ('AKSHAY',49389),
+    -> ('PALLAVI',67890),
+    -> ('AKSHAY',34567);
+
+mysql> select *from DEPOSITOR;
++---------------+-------+
+| customer_name | accno |
++---------------+-------+
+| KRISHNA       | 12345 |
+| RADHA         | 12389 |
+| BALRAM        | 34567 |
+| AKSHAY        | 49389 |
+| PALLAVI       | 67890 |
++---------------+-------+
+
+mysql> insert into CUSTOMER values
+    -> ('KRISHNA','NR COLONY','BANGALORE'),
+    -> ('RADHA','BANSANKARI','BANGALORE'),
+    -> ('BALRAM','VIDYANAGAR','DHARWAD'),
+    -> ('AKSHAY','RAMNAGAR','HUBLI'),
+    -> ('PALLAVI','RAMNAGAR','HUBLI');
+
+mysql> select *from CUSTOMER;
++---------------+-----------------+---------------+
+| customer_name | customer_street | customer_city |
++---------------+-----------------+---------------+
+| AKSHAY        | RAMNAGAR        | HUBLI         |
+| BALRAM        | VIDYANAGAR      | DHARWAD       |
+| KRISHNA       | NR COLONY       | BANGALORE     |
+| PALLAVI       | RAMNAGAR        | HUBLI         |
+| RADHA         | BANSANKARI      | BANGALORE     |
++---------------+-----------------+---------------+
+
+mysql> insert into LOAN values
+    -> (1,'ALLAHABADH',56000),
+    -> (2,'ICICI',47890),
+    -> (3,'KARNATAKA-BANK',45000),
+    -> (4,'SBI',45000),
+    -> (5,'SBI',20000);
+
+mysql> select *from LOAN;
++-------------+----------------+--------+
+| loan_number | branch_name    | amount |
++-------------+----------------+--------+
+|           1 | ALLAHABADH     |  56000 |
+|           2 | ICICI          |  47890 |
+|           3 | KARNATAKA-BANK |  45000 |
+|           4 | SBI            |  45000 |
+|           5 | SBI            |  20000 |
++-------------+----------------+--------+
+
+mysql> insert into BORROWER values
+    ('KRISHNA',4),
+    ('RADHA',5),
+    ('PALLAVI',5),
+    ('AKSHAY',1),
+    ('BALRAM',3);
+
+mysql> select *from BORROWER;
++---------------+-------------+
+| customer_name | loan_number |
++---------------+-------------+
+| AKSHAY        |           1 |
+| BALRAM        |           3 |
+| KRISHNA       |           4 |
+| PALLAVI       |           5 |
+| RADHA         |           5 |
++---------------+-------------+
+
+
+iii. Find all the customers who have at least two accounts at the Main branch (ex.SBI_ResidencyRoad).
+
+mysql> select customer_name from DEPOSITOR join ACCOUNTS on DEPOSITOR.accno=ACCOUNTS.accno where 
+      ACCOUNTS.branch_name='ICICI' group by DEPOSITOR.customer_name having count(DEPOSITOR.customer_name)>=2;
++---------------+
+| customer_name |
++---------------+
+| AKSHAY        |
++---------------+
+
+iv. Find all the customers who have an account at all the branches located in a specific city (Ex. Delhi).
+
+mysql> select customer_name from DEPOSITOR join ACCOUNTS on ACCOUNTS.accno=DEPOSITOR.accno join BRANCH on 
+BRANCH.branch_name=ACCOUNTS.branch_name where BRANCH.branch_city='DHARWAD' GROUP BY DEPOSITOR.customer_name
+ having count(DISTINCT BRANCH.branch_name)=(SELECT COUNT(branch_name) FROM BRANCH where branch_city='DHARWAD');
++---------------+
+| customer_name |
++---------------+
+| AKSHAY        |
+| BALRAM        |
+| RADHA         |
++---------------+
+
+v. Demonstrate how you delete all account tuples at every branch located in a specific city (Ex. Bombay).
+
+mysql> DELETE FROM ACCOUNTS WHERE branch_name in (select branch_name from BRANCH where branch_city='BELGAUM');
+mysql> select *from ACCOUNTS;
++-------+----------------+---------+
+| accno | branch_name    | balance |
++-------+----------------+---------+
+| 12345 | ALLAHABADH     |    4000 |
+| 12389 | ICICI          |    5600 |
+| 34567 | ICICI          |    5000 |
+| 49389 | ICICI          |    1780 |
+| 67890 | SBI-BASVANGUDI |    7500 |
++-------+----------------+---------+
