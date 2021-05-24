@@ -210,3 +210,22 @@ mysql> select distinct s.sname
 | rita  |
 +-------+
 
+vii.For each age value that appears in Students, find the level value that appears most often. For example, if there are
+    more FR level students aged 18 than SR, JR, or SO students aged 18, you should print the pair (18, FR).
+mysql> select s.age,s.level
+    -> from student s
+    -> group by s.age,s.level having s.level in(
+    -> select s1.level from student s1
+    -> where s1.age=s.age
+    -> group by s1.level,s1.age
+    -> having count(*)>=all(select count(*) from
+    -> student s2 where s1.age=s2.age
+    -> group by s2.level,s2.age));
++------+-------+
+| age  | level |
++------+-------+
+|   19 | sr    |
+|   20 | jr    |
+|   21 | sr    |
++------+-------+
+
