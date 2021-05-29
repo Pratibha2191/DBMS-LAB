@@ -1,0 +1,236 @@
+3.Consider the following schema:
+  SUPPLIERS (sid: integer, sname: string, address: string)
+  PARTS (pid: integer, pname: string, color: string)
+  CATALOG (sid: integer, pid: integer, cost: real)
+
+mysql> create table suppliers(
+    -> sid integer primary key,
+    -> sname varchar(20),
+    -> address varchar(50));
+
+mysql> desc suppliers;
++---------+-------------+------+-----+---------+-------+
+| Field   | Type        | Null | Key | Default | Extra |
++---------+-------------+------+-----+---------+-------+
+| sid     | int         | NO   | PRI | NULL    |       |
+| sname   | varchar(20) | YES  |     | NULL    |       |
+| address | varchar(50) | YES  |     | NULL    |       |
++---------+-------------+------+-----+---------+-------+
+
+
+mysql> create table parts(
+    -> pid integer primary key,
+    -> pname varchar(20),
+    -> color varchar(10));
+
+mysql> desc parts;
++-------+-------------+------+-----+---------+-------+
+| Field | Type        | Null | Key | Default | Extra |
++-------+-------------+------+-----+---------+-------+
+| pid   | int         | NO   | PRI | NULL    |       |
+| pname | varchar(20) | YES  |     | NULL    |       |
+| color | varchar(10) | YES  |     | NULL    |       |
++-------+-------------+------+-----+---------+-------+
+
+
+mysql> create table catalog(
+    -> sid integer,
+    -> pid integer,
+    -> cost real,
+    -> primary key(sid,pid),
+    -> foreign key(sid) references suppliers(sid) on delete cascade on update cascade,
+    -> foreign key(pid) references parts(pid) on delete cascade on update cascade);
+
+mysql> desc catalog;
++-------+--------+------+-----+---------+-------+
+| Field | Type   | Null | Key | Default | Extra |
++-------+--------+------+-----+---------+-------+
+| sid   | int    | NO   | PRI | NULL    |       |
+| pid   | int    | NO   | PRI | NULL    |       |
+| cost  | double | YES  |     | NULL    |       |
++-------+--------+------+-----+---------+-------+
+
+
+mysql> insert into suppliers(sid,sname,address) VALUES
+    -> (001,'Rohan','Mangalore'),
+    -> (002,'Avni','Bangalore'),
+    -> (003,'Pratibha','Bagalkot'),
+    -> (004,'Rahul','Udupi'),
+    -> (005,'Prithvi','Hassan');
+
+mysql> select*from suppliers;
++-----+----------+-----------+
+| sid | sname    | address   |
++-----+----------+-----------+
+|   1 | Rohan    | Mangalore |
+|   2 | Avni     | Bangalore |
+|   3 | Pratibha | Bagalkot  |
+|   4 | Rahul    | Udupi     |
+|   5 | Prithvi  | Hassan    |
++-----+----------+-----------+
+
+mysql> insert into parts(pid,pname,color) VALUES
+    -> (001,'Pipe','white'),
+    -> (002,'Screw','red'),
+    -> (003,'Nail','black'),
+    -> (004,'Tap','grey'),
+    -> (005,'bottle','red'),
+    -> (006,'plywood','brown');
+
+mysql> select *from parts;
++-----+---------+-------+
+| pid | pname   | color |
++-----+---------+-------+
+|   1 | Pipe    | white |
+|   2 | Screw   | red   |
+|   3 | Nail    | black |
+|   4 | Tap     | grey  |
+|   5 | bottle  | red   |
+|   6 | plywood | brown |
++-----+---------+-------+
+
+mysql> insert into catalog(sid,pid,cost) VALUES
+    -> (001,001,50.00),
+    -> (001,006,120.00),
+    -> (002,002,75),
+    -> (002,005,100),
+    -> (003,002,45),
+    -> (003,003,75),
+    -> (004,001,140),
+    -> (004,002,38),
+    -> (004,003,42),
+    -> (004,004,310),
+    -> (004,005,79),
+    -> (004,006,110),
+    -> (005,002,50),
+    -> (005,003,48);
+
+mysql> select*from catalog;
++-----+-----+------+
+| sid | pid | cost |
++-----+-----+------+
+|   1 |   1 |   50 |
+|   1 |   6 |  120 |
+|   2 |   2 |   75 |
+|   2 |   5 |  100 |
+|   3 |   2 |   45 |
+|   3 |   3 |   75 |
+|   4 |   1 |  140 |
+|   4 |   2 |   38 |
+|   4 |   3 |   42 |
+|   4 |   4 |  310 |
+|   4 |   5 |   79 |
+|   4 |   6 |  110 |
+|   5 |   2 |   50 |
+|   5 |   3 |   48 |
++-----+-----+------+
+
+The Catalog relation lists the prices charged for parts by Suppliers. Write the following queries in SQL:
+
+i. Find the pnames of parts for which there is some supplier.
+
+mysql> select distinct parts.pname from parts,catalog
+    -> where parts.pid = catalog.pid;
++---------+
+| pname   |
++---------+
+| Pipe    |
+| Screw   |
+| Nail    |
+| Tap     |
+| bottle  |
+| plywood |
++---------+
+
+ii. Find the snames of suppliers who supply every part.
+
+mysql> select sname from suppliers s,catalog c
+    -> where s.sid=c.sid group by s.sid,sname
+    -> having count(pid)=6
+    -> ;
++-------+
+| sname |
++-------+
+| Rahul |
++-------+
+          
+             (or)
+
+mysql> select distinct s.sname from suppliers s
+    -> where not exists(select p.pid from parts p
+    -> where not exists(select c.sid from catalog c
+    -> where c.sid=s.sid and c.pid=p.pid));
++-------+
+| sname |
++-------+
+| Rahul |
++-------+
+
+iii. Find the snames of suppliers who supply every red part.
+
+mysql> select s.sname from suppliers s where s.sid in (select c.sid 
+       from catalog c,parts p where c.pid=p.pid and p.color='red' 
+       group by c.sid having count(c.pid)=(select count(*) 
+       from parts p where p.color='red'));
++-------+
+| sname |
++-------+
+| Avni  |
+| Rahul |
++-------+
+
+iv. Find the pnames of parts supplied by Rahul and by no one else.
+
+mysql> SELECT P.pname FROM Parts P, Catalog C, Suppliers S
+    -> WHERE P.pid = C.pid AND C.sid = S.sid AND S.sname = "Rahul"
+    -> AND NOT EXISTS ( SELECT *
+    -> FROM Catalog C1, Suppliers S1
+    -> WHERE P.pid = C1.pid AND C1.sid = S1.sid AND S1.sname <>"Rahul" );
++-------+
+| pname |
++-------+
+| Tap   |
++-------+
+
+v. Find the sids of suppliers who charge more for some part than the average cost of that part (averaged over
+   all the suppliers who supply that part).
+
+mysql> SELECT DISTINCT C.sid FROM Catalog C
+    -> WHERE C.cost > ( SELECT AVG (C1.cost)
+    -> FROM Catalog C1 WHERE C1.pid = C.pid );
++-----+
+| sid |
++-----+
+|   1 |
+|   2 |
+|   3 |
+|   4 |
++-----+
+
+vi. For each part, find the sname of the supplier who charges the most for that part.
+
+mysql> SELECT P.pid, S.sname FROM Parts P, Suppliers S, Catalog C
+    -> WHERE C.pid = P.pid AND C.sid = S.sid
+    -> AND C.cost = (SELECT MAX(C1.cost) FROM Catalog C1
+    -> WHERE C1.pid = P.pid);
++-----+----------+
+| pid | sname    |
++-----+----------+
+|   6 | Rohan    |
+|   2 | Avni     |
+|   5 | Avni     |
+|   3 | Pratibha |
+|   1 | Rahul    |
+|   4 | Rahul    |
++-----+----------+
+
+vii. Find the sids of suppliers who supply only red parts.
+
+mysql> select s.sid from suppliers s where s.sid in(select c.sid 
+       from catalog c where c.sid not in (select distinct(ca.sid) 
+       from catalog ca,parts p where ca.pid=p.pid and p.color!='red'));
++-----+
+| sid |
++-----+
+|   2 |
++-----+
