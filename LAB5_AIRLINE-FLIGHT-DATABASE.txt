@@ -1,0 +1,268 @@
+5. AIRLINE FLIGHT DATABASE
+Consider the following database that keeps track of airline flight information:
+FLIGHTS(flno: integer,from:string, to: string,distance: integer,departs: time, arrives: time,price:integer)
+AIRCRAFT(aid: integer,aname: string,cruisingrange: integer)
+CERTIFIED(eid: integer,aid:integer)
+EMPLOYEES(eid: integer,ename: string,salary: integer)
+Note that the Employees relation describes pilots and other kinds of employees as well; Every pilot is certified
+for some aircraft, and only pilots are certified to fly.
+
+create database airlineflight;
+
+mysql> CREATE TABLE FLIGHTS (
+    -> FLNO INTEGER PRIMARY KEY,
+    -> FFROM VARCHAR(15) NOT NULL,
+    -> TTO VARCHAR(15) NOT NULL,
+    -> DISTANCE INTEGER,
+    -> DEPARTS TIMESTAMP,
+    -> ARRIVES TIMESTAMP,
+    -> PRICE REAL);
+
+mysql> desc flights;
++----------+-------------+------+-----+---------+-------+
+| Field    | Type        | Null | Key | Default | Extra |
++----------+-------------+------+-----+---------+-------+
+| FLNO     | int         | NO   | PRI | NULL    |       |
+| FFROM    | varchar(15) | NO   |     | NULL    |       |
+| TTO      | varchar(15) | NO   |     | NULL    |       |
+| DISTANCE | int         | YES  |     | NULL    |       |
+| DEPARTS  | timestamp   | YES  |     | NULL    |       |
+| ARRIVES  | timestamp   | YES  |     | NULL    |       |
+| PRICE    | double      | YES  |     | NULL    |       |
++----------+-------------+------+-----+---------+-------+
+
+mysql> CREATE TABLE AIRCRAFT (
+    -> AID INTEGER PRIMARY KEY,
+    -> ANAME VARCHAR(10),
+    -> CRUISINGRANGE INTEGER);
+
+mysql> desc aircraft;
++---------------+-------------+------+-----+---------+-------+
+| Field         | Type        | Null | Key | Default | Extra |
++---------------+-------------+------+-----+---------+-------+
+| AID           | int         | NO   | PRI | NULL    |       |
+| ANAME         | varchar(10) | YES  |     | NULL    |       |
+| CRUISINGRANGE | int         | YES  |     | NULL    |       |
++---------------+-------------+------+-----+---------+-------+
+
+mysql> CREATE TABLE EMPLOYEES (
+    -> EID INTEGER PRIMARY KEY,
+    -> ENAME VARCHAR(15),
+    -> SALARY REAL(10,2));
+
+mysql> desc employees;
++--------+--------------+------+-----+---------+-------+
+| Field  | Type         | Null | Key | Default | Extra |
++--------+--------------+------+-----+---------+-------+
+| EID    | int          | NO   | PRI | NULL    |       |
+| ENAME  | varchar(15)  | YES  |     | NULL    |       |
+| SALARY | double(10,2) | YES  |     | NULL    |       |
++--------+--------------+------+-----+---------+-------+
+
+mysql> CREATE TABLE CERTIFIED (
+    -> EID INTEGER NOT NULL,
+    -> AID INTEGER NOT NULL,
+    -> PRIMARY KEY (EID, AID),
+    -> FOREIGN KEY (EID) REFERENCES EMPLOYEES(EID),
+    -> FOREIGN KEY (AID) REFERENCES AIRCRAFT(AID));
+
+mysql> desc certified;
++-------+------+------+-----+---------+-------+
+| Field | Type | Null | Key | Default | Extra |
++-------+------+------+-----+---------+-------+
+| EID   | int  | NO   | PRI | NULL    |       |
+| AID   | int  | NO   | PRI | NULL    |       |
++-------+------+------+-----+---------+-------+
+
+mysql> insert into aircraft values(101,'747',3000),(102,'Boeing',900),
+    -> (103,'647',800),(104,'Dreamliner',10000),(105,'Boeing',3500),
+    -> (106,'707',1500),(107,'Dream', 120000);
+
+mysql> select *from aircraft;
++-----+------------+---------------+
+| AID | ANAME      | CRUISINGRANGE |
++-----+------------+---------------+
+| 101 | 747        |          3000 |
+| 102 | Boeing     |           900 |
+| 103 | 647        |           800 |
+| 104 | Dreamliner |         10000 |
+| 105 | Boeing     |          3500 |
+| 106 | 707        |          1500 |
+| 107 | Dream      |        120000 |
++-----+------------+---------------+
+
+mysql> insert into employees values (701,'A',50000),(702,'B',100000),
+    -> (703,'C',150000),(704,'D',90000),(705,'E',40000),(706,'F',60000),(707,'G',90000);
+
+mysql> select *from employees;
++-----+-------+-----------+
+| EID | ENAME | SALARY    |
++-----+-------+-----------+
+| 701 | A     |  50000.00 |
+| 702 | B     | 100000.00 |
+| 703 | C     | 150000.00 |
+| 704 | D     |  90000.00 |
+| 705 | E     |  40000.00 |
+| 706 | F     |  60000.00 |
+| 707 | G     |  90000.00 |
++-----+-------+-----------+
+
+mysql> insert into certified values(701,101),(701,102),(701,106),(701,105),(702,104),(703,104);
+    -> (704,104),(702,107),(703,107),(704,107),(702,101),(703,105),(704,105),(705,103);
+
+mysql> select *from certified;
++-----+-----+
+| EID | AID |
++-----+-----+
+| 701 | 101 |
+| 702 | 101 |
+| 701 | 102 |
+| 705 | 103 |
+| 702 | 104 |
+| 703 | 104 |
+| 704 | 104 |
+| 701 | 105 |
+| 703 | 105 |
+| 704 | 105 |
+| 701 | 106 |
+| 702 | 107 |
+| 703 | 107 |
+| 704 | 107 |
++-----+-----+
+
+mysql> insert into flights values(101,'Bangalore','Delhi',2500,TIMESTAMP '2005-05-13 07:15:31',TIMESTAMP
+    -> '2005-05-13 17:15:31',5000);
+mysql> insert into flights values(102,'Bangalore','Lucknow',3000,TIMESTAMP '2005-05-13 07:15:31',TIMESTAMP
+    -> '2005-05-13 11:15:31',6000);
+mysql> insert into flights values(103,'Lucknow','Delhi',500,TIMESTAMP '2005-05-13 12:15:31',TIMESTAMP '
+    '> 2005-05-13 17:15:31',3000);
+mysql> insert into flights values(107,'Bangalore','Frankfurt',8000,TIMESTAMP '2005-05-13 07:15:31',TIMESTAMP
+    -> '2005-05-13 22:15:31',60000);
+mysql> insert into flights values(104,'Bangalore','Frankfurt',8500,TIMESTAMP '2005-05-13 07:15:31',TIMESTAMP
+    -> '2005-05-13 23:15:31',75000);
+mysql> insert into flights values(105,'Kolkata','Delhi',3400,TIMESTAMP '2005-05-13 07:15:31',TIMESTAMP
+    -> '2005-05-13 09:15:31',7000);
+
+mysql> select *from flights;
++------+-----------+-----------+----------+---------------------+---------------------+-------+
+| FLNO | FFROM     | TTO       | DISTANCE | DEPARTS             | ARRIVES             | PRICE |
++------+-----------+-----------+----------+---------------------+---------------------+-------+
+|  101 | Bangalore | Delhi     |     2500 | 2005-05-13 07:15:31 | 2005-05-13 17:15:31 |  5000 |
+|  102 | Bangalore | Lucknow   |     3000 | 2005-05-13 07:15:31 | 2005-05-13 11:15:31 |  6000 |
+|  103 | Lucknow   | Delhi     |      500 | 2005-05-13 12:15:31 | 2005-05-13 17:15:31 |  3000 |
+|  104 | Bangalore | Frankfurt |     8500 | 2005-05-13 07:15:31 | 2005-05-13 23:15:31 | 75000 |
+|  105 | Kolkata   | Delhi     |     3400 | 2005-05-13 07:15:31 | 2005-05-13 09:15:31 |  7000 |
+|  107 | Bangalore | Frankfurt |     8000 | 2005-05-13 07:15:31 | 2005-05-13 22:15:31 | 60000 |
++------+-----------+-----------+----------+---------------------+---------------------+-------+
+
+Write each of the following queries in SQL.
+
+i.Find the names of aircraft such that all pilots certified to operate them have salaries more than Rs.80,000.
+
+mysql> SELECT DISTINCT A.aname FROM Aircraft A
+    -> WHERE A.Aid IN (SELECT C.aid FROM Certified C, Employees E
+    -> WHERE C.eid = E.eid AND NOT EXISTS ( SELECT * FROM Employees E1
+    -> WHERE E1.eid = E.eid AND E1.salary < 80000 ));
++------------+
+| aname      |
++------------+
+| 747        |
+| Dreamliner |
+| Boeing     |
+| Dream      |
++------------+
+
+ii.For each pilot who is certified for more than three aircrafts, find the eid and the maximum cruisingrange of
+   the aircraft for which she or he is certified.
+
+mysql> SELECT C.eid, MAX(A.cruisingrange) FROM Certified C, Aircraft A
+    -> WHERE C.aid = A.aid
+    -> GROUP BY C.eid HAVING COUNT(*) > 3 ;
++-----+----------------------+
+| eid | MAX(A.cruisingrange) |
++-----+----------------------+
+| 701 |                 3500 |
++-----+----------------------+
+
+iii.Find the names of pilots whose salary is less than the price of the cheapest route from Bangalore to
+    Frankfurt.
+
+mysql> SELECT DISTINCT E.ename FROM Employees E
+    -> WHERE E.salary < ( SELECT MIN(F.price) FROM Flights F
+    -> WHERE F.ffrom = 'Bangalore' AND F.tto = 'Frankfurt' );
++-------+
+| ename |
++-------+
+| A     |
+| E     |
++-------+
+
+iv.For all aircraft with cruisingrange over 1000 Kms, find the name of the aircraft and the average salary of all
+   pilots certified for this aircraft.
+
+mysql> SELECT Temp.name, Temp.AvgSalary
+    -> FROM ( SELECT A.aid, A.aname AS name, AVG (E.salary) AS AvgSalary
+    -> FROM Aircraft A, Certified C, Employees E
+    -> WHERE A.aid = C.aid AND C.eid = E.eid AND A.cruisingrange > 1000
+    -> GROUP BY A.aid, A.aname ) AS Temp
+    -> ;
++------------+---------------+
+| name       | AvgSalary     |
++------------+---------------+
+| 747        |  75000.000000 |
+| Dreamliner | 113333.333333 |
+| Boeing     |  96666.666667 |
+| 707        |  50000.000000 |
+| Dream      | 113333.333333 |
++------------+---------------+
+
+v.Find the names of pilots certified for some Boeing aircraft4
+
+mysql> SELECT DISTINCT E.ename
+    -> FROM Employees E, Certified C, Aircraft A
+    -> WHERE E.eid = C.eid AND C.aid = A.aid AND A.aname LIKE 'Boeing%';
++-------+
+| ename |
++-------+
+| A     |
+| C     |
+| D     |
++-------+
+
+vi. Find the aids of all aircraft that can be used on routes from Bangalore to Delhi.
+
+mysql> SELECT A.aid FROM Aircraft A
+    -> WHERE A.cruisingrange > ( SELECT MIN(F.distance) FROM Flights F
+    -> WHERE F.ffrom = 'Bangalore' AND F.tto = 'Delhi');
++-----+
+| aid |
++-----+
+| 101 |
+| 104 |
+| 105 |
+| 107 |
++-----+
+
+vii.A customer wants to travel from Bangalore to Delhi with no more than two changes of flight. List the choice
+    of departure times from Bangalore if the customer wants to arrive in Delhi by 6 p.m.
+
+mysql> SELECT F.departs,F.flno FROM Flights F
+    -> WHERE F.flno IN (( SELECT F0.flno FROM Flights F0
+    -> WHERE F0.ffrom = 'Bangalore' AND F0.tto = 'Delhi' AND extract(hour from F0.arrives) < 18)
+    -> UNION
+    -> (SELECT F0.flno FROM Flights F0, Flights F1
+    -> WHERE F0.ffrom = 'Bangalore' AND F0.tto <> 'Delhi'
+    -> AND F0.tto = F1.ffrom AND F1.tto = 'Delhi'
+    -> AND F1.departs > F0.arrives AND extract(hour from F1.arrives) < 18 )
+    -> UNION
+    -> (SELECT F0.flno FROM Flights F0, Flights F1, Flights F2
+    -> WHERE F0.ffrom = 'Bangalore' AND F0.tto = F1.ffrom
+    -> AND F1.tto = F2.ffrom AND F2.tto = 'Delhi'
+    -> AND F0.tto <> 'Delhi' AND F1.tto <> 'Delhi'
+    -> AND F1.departs > F0.arrives AND F2.departs > F1.arrives AND extract(hour from F2.arrives) < 18 ));
++---------------------+------+
+| departs             | flno |
++---------------------+------+
+| 2005-05-13 07:15:31 |  101 |
+| 2005-05-13 07:15:31 |  102 |
++---------------------+------+
